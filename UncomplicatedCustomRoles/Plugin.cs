@@ -10,7 +10,7 @@ using Handler = UncomplicatedCustomRoles.Events.EventHandler;
 
 using PlayerHandler = Exiled.Events.Handlers.Player;
 using ServerHandler = Exiled.Events.Handlers.Server;
-
+using Scp330Handler = Exiled.Events.Handlers.Scp330;
 namespace UncomplicatedCustomRoles
 {
     internal class Plugin : Plugin<Config>
@@ -38,6 +38,7 @@ namespace UncomplicatedCustomRoles
             PlayerHandler.Died += Handler.OnDied;
             PlayerHandler.Spawning += Handler.OnSpawning;
             PlayerHandler.Spawned += Handler.OnPlayerSpawned;
+            Scp330Handler.InteractingScp330 += Handler.InteractingWith330;
 
             foreach (ICustomRole CustomRole in Config.CustomRoles)
             {
@@ -55,6 +56,7 @@ namespace UncomplicatedCustomRoles
             PlayerHandler.Died -= Handler.OnDied;
             PlayerHandler.Spawning -= Handler.OnSpawning;
             PlayerHandler.Spawned -= Handler.OnPlayerSpawned;
+            Scp330Handler.InteractingScp330 -= Handler.InteractingWith330;
 
             Handler = null;
             CustomRoles = null;

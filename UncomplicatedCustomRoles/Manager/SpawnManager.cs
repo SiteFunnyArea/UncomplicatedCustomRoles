@@ -118,7 +118,7 @@ namespace UncomplicatedCustomRoles.Manager
             // Player.Group.BadgeColor = Role.Badge.Color;
             // Player.Group.BadgeText = Role.Badge.Name;
             // Player.Group.Permissions = Player.Group.Permissions;
-            Player.CustomInfo = Role.Name + ("\n" + Role.CustomInfo ?? string.Empty);
+            Player.CustomInfo = (Role.CustomInfo ?? string.Empty);
             Player.MaxHealth = Role.MaxHealth;
             Player.Health = Role.Health;
             Player.ArtificialHealth = Role.Ahp;
@@ -130,6 +130,17 @@ namespace UncomplicatedCustomRoles.Manager
             {
                 Player.Scale = Role.Scale;
             }
+
+            foreach(Effect e in Role.Effects)
+            {
+                Player.EnableEffect(e);
+            }
+
+            if (Role.Abilities.Contains(Ability.InfSprint))
+            {
+                Player.IsUsingStamina = false;
+            }
+
             Player.Broadcast(Role.SpawnBroadcastDuration, Role.SpawnBroadcast);
             // Add the player to the player classes list
             Plugin.PlayerRegistry.Add(Player.Id, Role.Id);

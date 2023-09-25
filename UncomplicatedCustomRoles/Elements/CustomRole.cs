@@ -1,5 +1,7 @@
 ﻿using Exiled.API.Enums;
+using Exiled.API.Features;
 using PlayerRoles;
+using PluginAPI.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,9 +15,9 @@ namespace UncomplicatedCustomRoles.Elements
 {
     public class CustomRole : ICustomRole
     {
-        public int Id { get; set; } = 1;
-        public string Name { get; set; } = "Janitor";
-        public string CustomInfo { get; set; } = "Clean the Light Containment Zone.";
+        public int Id { get; set; } = 0;
+        public string Name { get; set; } = "Test Role";
+        public string CustomInfo { get; set; } = "Test Role.";
         public SpawnCondition SpawnCondition { get; set; } = SpawnCondition.RoundStart;
         public int MaxPlayers { get; set; } = 5;
         public int MinPlayers { get; set; } = 0;
@@ -29,6 +31,22 @@ namespace UncomplicatedCustomRoles.Elements
         public float MaxHealth { get; set; } = 100f;
         public float Ahp { get; set; } = 0f;
         public float HumeShield { get; set; } = 0f;
+        public List<Ability> Abilities { get; set; } = new() 
+        {
+            Ability.MoreCandy,
+
+        };
+        public List<Effect> Effects { get; set; } = new()
+        {
+            new()
+            {
+                Duration = 0,
+                Type = EffectType.MovementBoost,
+                Intensity = 100,
+                IsEnabled = true,
+            }
+        };
+
         public Vector3 Scale { get; set; } = new();
         public string SpawnBroadcast { get; set; } = "You are a <color=orange><b>Janitor</b></color>!\nClean the Light Containment Zone!";
         public ushort SpawnBroadcastDuration { get; set; } = 5;

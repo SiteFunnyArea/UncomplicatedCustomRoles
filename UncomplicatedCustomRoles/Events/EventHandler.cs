@@ -11,6 +11,7 @@ using MEC;
 using Exiled.Events.EventArgs.Server;
 using Exiled.Events.EventArgs.Player;
 using PlayerRoles;
+using Exiled.Events.EventArgs.Scp330;
 
 namespace UncomplicatedCustomRoles.Events
 {
@@ -89,10 +90,35 @@ namespace UncomplicatedCustomRoles.Events
         {
             if (Plugin.PlayerRegistry.ContainsKey(Died.Player.Id))
             {
+                ICustomRole? c = API.Features.Manager.Get(Died.Player);
+                if (c.Abilities.Contains(Ability.InfSprint))
+                {
+                    Died.Player.IsUsingStamina = true;
+                }
                 Plugin.RolesCount[Plugin.PlayerRegistry[Died.Player.Id]]--;
                 Plugin.PlayerRegistry.Remove(Died.Player.Id);
                 Died.Player.CustomInfo = "";
+                Died.Player.UniqueRole = "";
+                
                 // Died.Player.Group = new UserGroup();
+            }
+        }
+
+        public void InteractingWith330(InteractingScp330EventArgs ev)
+        {
+            ICustomRole? c = API.Features.Manager.Get(ev.Player);
+            if(c != null) {
+                if(c.Abilities.Contains(Ability.MoreCandy))
+                {
+                    if(ev.UsageCount <= 3)
+                    {
+                        ev.ShouldSever = false;
+                    }
+                    else
+                    {
+                        ev.ShouldSever = true;
+                    }
+                }
             }
         }
         public void OnSpawning(SpawningEventArgs Spawning)
