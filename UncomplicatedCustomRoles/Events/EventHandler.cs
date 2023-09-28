@@ -12,6 +12,7 @@ using Exiled.Events.EventArgs.Server;
 using Exiled.Events.EventArgs.Player;
 using PlayerRoles;
 using Exiled.Events.EventArgs.Scp330;
+using UnityEngine;
 
 namespace UncomplicatedCustomRoles.Events
 {
@@ -41,11 +42,12 @@ namespace UncomplicatedCustomRoles.Events
                 if (RolePercentage.ContainsKey(Player.Role.Type))
                 {
                     // We can proceed with the chance
-                    int Chance = new Random().Next(0, 100);
+                    int Chance = new System.Random().Next(0, 100);
                     if (Chance < RolePercentage[Player.Role.Type].Count())
                     {
                         // The role exists, good, let's give the player a role
                         int RoleId = RolePercentage[Player.Role.Type].RandomItem().Id;
+                        
                         if (Plugin.RolesCount[RoleId] < Plugin.CustomRoles[RoleId].MaxPlayers)
                         {
                             Timing.RunCoroutine(DoSpawnPlayer(Player, RoleId, false));
@@ -99,7 +101,7 @@ namespace UncomplicatedCustomRoles.Events
                 Plugin.PlayerRegistry.Remove(Died.Player.Id);
                 Died.Player.CustomInfo = "";
                 Died.Player.UniqueRole = "";
-                
+                Died.Player.Scale = new Vector3(1, 1, 1);
                 // Died.Player.Group = new UserGroup();
             }
         }
@@ -110,21 +112,39 @@ namespace UncomplicatedCustomRoles.Events
             if(c != null) {
                 if(c.Abilities.Contains(Ability.MoreCandy))
                 {
-                    if(ev.UsageCount <= 3)
+                    if(ev.UsageCount <= 2)
                     {
                         ev.ShouldSever = false;
                     }
-                    else
+                    else if(ev.UsageCount > 2)
                     {
                         ev.ShouldSever = true;
                     }
                 }
             }
         }
+
+        public void OnRoundRestart()
+        {
+            Plugin.PlayerRegistry.Clear();
+            Plugin.RolesCount.Clear();
+            Plugin.CustomRoles.Clear();
+            foreach (ICustomRole CustomRole in Plugin.Instance.Config.CustomRoles)
+            {
+                SpawnManager.RegisterCustomSubclass(CustomRole);
+            }
+
+        }
         public void OnSpawning(SpawningEventArgs Spawning)
         {
             if (Plugin.PlayerRegistry.ContainsKey(Spawning.Player.Id))
             {
+                ICustomRole? c = API.Features.Manager.Get(Spawning.Player);
+                if (c.Abilities.Contains(Ability.InfSprint))
+                {
+                    Spawning.Player.IsUsingStamina = true;
+                }
+
                 Plugin.PlayerRegistry.Remove(Spawning.Player.Id);
                 Spawning.Player.CustomInfo = "";
                 // Spawning.Player.Group = new UserGroup();
@@ -153,7 +173,7 @@ namespace UncomplicatedCustomRoles.Events
                     }
                 }
             }
-            int Chance = new Random().Next(0, 100);
+            int Chance = new System.Random().Next(0, 100);
             if (Chance >= RolePercentage.Count())
             {
                 yield break;

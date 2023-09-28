@@ -118,10 +118,7 @@ namespace UncomplicatedCustomRoles.Manager
             // Player.Group.BadgeColor = Role.Badge.Color;
             // Player.Group.BadgeText = Role.Badge.Name;
             // Player.Group.Permissions = Player.Group.Permissions;
-            Player.CustomInfo = (Role.CustomInfo ?? string.Empty);
-            Player.MaxHealth = Role.MaxHealth;
-            Player.Health = Role.Health;
-            Player.ArtificialHealth = Role.Ahp;
+
             if (Role.HumeShield > 0)
             {
                 Player.HumeShield = Role.HumeShield;
@@ -141,9 +138,15 @@ namespace UncomplicatedCustomRoles.Manager
                 Player.IsUsingStamina = false;
             }
 
+            Player.CustomInfo = (Role.CustomInfo ?? string.Empty);
+
+            Player.ArtificialHealth = Role.Ahp;
+
             Player.Broadcast(Role.SpawnBroadcastDuration, Role.SpawnBroadcast);
             // Add the player to the player classes list
             Plugin.PlayerRegistry.Add(Player.Id, Role.Id);
+            Player.MaxHealth = Role.MaxHealth;
+            Player.Health = Role.Health;
         }
     }
 }

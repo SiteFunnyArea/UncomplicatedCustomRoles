@@ -35,6 +35,7 @@ namespace UncomplicatedCustomRoles
 
             ServerHandler.RoundStarted += Handler.OnRoundStarted;
             ServerHandler.RespawningTeam += Handler.OnRespawningTeam;
+            ServerHandler.RestartingRound += Handler.OnRoundRestart;
             PlayerHandler.Died += Handler.OnDied;
             PlayerHandler.Spawning += Handler.OnSpawning;
             PlayerHandler.Spawned += Handler.OnPlayerSpawned;
@@ -53,6 +54,7 @@ namespace UncomplicatedCustomRoles
 
             ServerHandler.RoundStarted -= Handler.OnRoundStarted;
             ServerHandler.RespawningTeam -= Handler.OnRespawningTeam;
+            ServerHandler.RestartingRound -= Handler.OnRoundRestart;
             PlayerHandler.Died -= Handler.OnDied;
             PlayerHandler.Spawning -= Handler.OnSpawning;
             PlayerHandler.Spawned -= Handler.OnPlayerSpawned;
