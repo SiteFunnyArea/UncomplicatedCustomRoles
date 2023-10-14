@@ -18,6 +18,16 @@ namespace UncomplicatedCustomRoles.Events
 {
     public class EventHandler
     {
+        public int CDRole;
+        public int SCRole;
+        public int FGRole;
+        public int CIRole;
+        public int Captain;
+        public int Specialist;
+        public int Sergeant;
+        public int Private;
+
+
         public void OnRoundStarted()
         {
             // Check for all subclasses and all spawn percentage
@@ -36,6 +46,34 @@ namespace UncomplicatedCustomRoles.Events
                 }
             }
 
+            foreach (ICustomRole Role in Plugin.CustomRoles.Values) {
+                switch (Role.Role)
+                {
+                    case RoleTypeId.ClassD:
+                        CDRole += 1;
+                        break;
+                    case RoleTypeId.Scientist:
+                        SCRole += 1;
+                        break;
+                    case RoleTypeId.FacilityGuard:
+                        FGRole += 1;
+                        break;
+                    case RoleTypeId.NtfPrivate:
+                        Private += 1;
+                        break;
+                    case RoleTypeId.NtfSergeant:
+                        Sergeant += 1;
+                        break;
+                    case RoleTypeId.NtfSpecialist:
+                        Specialist += 1;
+                        break;
+                    case RoleTypeId.NtfCaptain:
+                        Captain += 1;
+                        break;
+
+                }
+            }
+
             // Now check all the player list and assign a custom subclasses for every role
             foreach (Player Player in Player.List)
             {
@@ -47,17 +85,8 @@ namespace UncomplicatedCustomRoles.Events
                     {
                         // The role exists, good, let's give the player a role
                         int RoleId = RolePercentage[Player.Role.Type].RandomItem().Id;
-                        
-                        if (Plugin.RolesCount[RoleId] < Plugin.CustomRoles[RoleId].MaxPlayers)
-                        {
-                            Timing.RunCoroutine(DoSpawnPlayer(Player, RoleId, false));
-                            Plugin.RolesCount[RoleId]++;
-                            Log.Debug($"Player {Player.Nickname} spawned as CustomRole {RoleId}");
-                        }
-                        else
-                        {
-                            Log.Debug($"Player {Player.Nickname} won't be spawned as CustomRole {Player.Id} because it has reached the maximus number");
-                        }
+
+                        Timing.RunCoroutine(DoSpawnPlayer(Player, RoleId, RolePercentage, false));
                     }
                 }
             }
@@ -66,7 +95,7 @@ namespace UncomplicatedCustomRoles.Events
         {
             Log.Debug("Respawning event, reset the queue");
             Plugin.RoleSpawnQueue.Clear();
-
+            
             foreach (Player Player in Respawn.Players.ToList())
             {
                 Plugin.RoleSpawnQueue.Add(Player.Id);
@@ -82,14 +111,46 @@ namespace UncomplicatedCustomRoles.Events
                 {
                     Log.Debug($"Assigning a role to {Spawned.Player.Nickname}");
                     Plugin.RoleSpawnQueue.Remove(Spawned.Player.Id);
-                    Timing.RunCoroutine(DoElaborateSpawnPlayerFromWave(Spawned.Player, false));
+                    Timing.RunCoroutine(DoElaborateSpawnPlayerFromWave(Spawned.Player, true));
                     Log.Debug($"Player {Spawned.Player.Nickname} successfully spawned as CustomRole {Plugin.RoleSpawnQueue[Spawned.Player.Id]}");
+                }
+                else
+                {
+                    ICustomRole? c = API.Features.Manager.Get(Spawned.Player);
+                    if (c.Abilities.Contains(Ability.InfSprint))
+                    {
+                        Spawned.Player.IsUsingStamina = true;
+                    }
+
+                    Plugin.PlayerRegistry.Remove(Spawned.Player.Id);
+                    Spawned.Player.CustomInfo = "";
+
                 }
                 Log.Debug(Plugin.RoleSpawnQueue.Count().ToString());
             });
         }
+
+
         public void OnDied(DiedEventArgs Died)
         {
+            if (Died.Attacker != null && Plugin.PlayerRegistry.ContainsKey(Died.Attacker.Id))
+            {
+                ICustomRole? c = API.Features.Manager.Get(Died.Attacker);
+                if (c.Abilities.Contains(Ability.KillEqualsInvisi))
+                {
+                    Died.Attacker.EnableEffect(Exiled.API.Enums.EffectType.Invisible, 5, true);
+                }
+                if (c.Abilities.Contains(Ability.KillEqualsAmmo))
+                {
+                    Died.Attacker.AddAmmo(Exiled.API.Enums.AmmoType.Nato556, 10);
+                    Died.Attacker.AddAmmo(Exiled.API.Enums.AmmoType.Nato762, 10);
+                    Died.Attacker.AddAmmo(Exiled.API.Enums.AmmoType.Nato9, 10);
+                    Died.Attacker.AddAmmo(Exiled.API.Enums.AmmoType.Ammo44Cal, 4);
+                    Died.Attacker.AddAmmo(Exiled.API.Enums.AmmoType.Ammo12Gauge, 6);
+
+                }
+            }
+
             if (Plugin.PlayerRegistry.ContainsKey(Died.Player.Id))
             {
                 ICustomRole? c = API.Features.Manager.Get(Died.Player);
@@ -101,9 +162,10 @@ namespace UncomplicatedCustomRoles.Events
                 Plugin.PlayerRegistry.Remove(Died.Player.Id);
                 Died.Player.CustomInfo = "";
                 Died.Player.UniqueRole = "";
-                Died.Player.Scale = new Vector3(1, 1, 1);
+                
                 // Died.Player.Group = new UserGroup();
             }
+            Died.Player.Scale = new Vector3(1, 1, 1);
         }
 
         public void InteractingWith330(InteractingScp330EventArgs ev)
@@ -129,31 +191,46 @@ namespace UncomplicatedCustomRoles.Events
             Plugin.PlayerRegistry.Clear();
             Plugin.RolesCount.Clear();
             Plugin.CustomRoles.Clear();
+            CDRole = 0;
+            SCRole = 0;
+            FGRole = 0;
+            CIRole = 0;
+            Captain = 0;
+            Specialist = 0;
+            Sergeant = 0;
+            Private = 0;
             foreach (ICustomRole CustomRole in Plugin.Instance.Config.CustomRoles)
             {
                 SpawnManager.RegisterCustomSubclass(CustomRole);
             }
 
         }
-        public void OnSpawning(SpawningEventArgs Spawning)
+        public static IEnumerator<float> DoSpawnPlayer(Player Player, int Id, Dictionary<RoleTypeId, List<ICustomRole>> RolePercentage, bool DoBypassRoleOverwrite = true)
         {
-            if (Plugin.PlayerRegistry.ContainsKey(Spawning.Player.Id))
-            {
-                ICustomRole? c = API.Features.Manager.Get(Spawning.Player);
-                if (c.Abilities.Contains(Ability.InfSprint))
-                {
-                    Spawning.Player.IsUsingStamina = true;
-                }
 
-                Plugin.PlayerRegistry.Remove(Spawning.Player.Id);
-                Spawning.Player.CustomInfo = "";
-                // Spawning.Player.Group = new UserGroup();
+            yield return Timing.WaitForSeconds(0.1f);
+
+            if (Plugin.RolesCount[Id] < Plugin.CustomRoles[Id].MaxPlayers)
+            {
+                SpawnManager.SummonCustomSubclass(Player, Id, DoBypassRoleOverwrite);
+                Plugin.RolesCount[Id]++;
+                Log.Debug($"Player {Player.Nickname} spawned as CustomRole {Id}");
             }
+            else
+            {
+              int RID = RolePercentage[Player.Role.Type].RandomItem().Id;
+
+              Timing.RunCoroutine(DoSpawnPlayer(Player, RID, RolePercentage, false));
+
+            }
+
         }
+
         public static IEnumerator<float> DoSpawnPlayer(Player Player, int Id, bool DoBypassRoleOverwrite = true)
         {
-            yield return Timing.WaitForSeconds(0.1f);
-            SpawnManager.SummonCustomSubclass(Player, Id, DoBypassRoleOverwrite);
+
+                yield return Timing.WaitForSeconds(0.1f);
+                SpawnManager.SummonCustomSubclass(Player, Id, DoBypassRoleOverwrite);
         }
         public static IEnumerator<float> DoElaborateSpawnPlayerFromWave(Player Player, bool DoBypassRoleOverwrite = true)
         {
@@ -162,7 +239,7 @@ namespace UncomplicatedCustomRoles.Events
 
             foreach (KeyValuePair<int, ICustomRole> Role in Plugin.CustomRoles)
             {
-                if (!Role.Value.IgnoreSpawnSystem && Role.Value.CanReplaceRoles.Contains(Player.Role.Type) && Role.Value.MaxPlayers < Plugin.RolesCount[Role.Value.Id] && Role.Value.MinPlayers < Player.List.Count())
+                if (!Role.Value.IgnoreSpawnSystem && Role.Value.CanReplaceRoles.Contains(Player.Role.Type) && Role.Value.MaxPlayers > Plugin.RolesCount[Role.Value.Id] && Role.Value.MinPlayers >= Player.List.Count())
                 {
                     foreach (RoleTypeId RoleType in Role.Value.CanReplaceRoles)
                     {
@@ -180,7 +257,7 @@ namespace UncomplicatedCustomRoles.Events
             }
             int RoleId = RolePercentage[Player.Role.Type].RandomItem().Id;
             Plugin.RolesCount[RoleId]++;
-            Timing.RunCoroutine(DoSpawnPlayer(Player, RoleId, false));
+            Timing.RunCoroutine(DoSpawnPlayer(Player, RoleId, RolePercentage, false));
             yield break;
         }
     }

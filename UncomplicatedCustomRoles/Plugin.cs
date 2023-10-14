@@ -37,7 +37,6 @@ namespace UncomplicatedCustomRoles
             ServerHandler.RespawningTeam += Handler.OnRespawningTeam;
             ServerHandler.RestartingRound += Handler.OnRoundRestart;
             PlayerHandler.Died += Handler.OnDied;
-            PlayerHandler.Spawning += Handler.OnSpawning;
             PlayerHandler.Spawned += Handler.OnPlayerSpawned;
             Scp330Handler.InteractingScp330 += Handler.InteractingWith330;
 
@@ -56,7 +55,6 @@ namespace UncomplicatedCustomRoles
             ServerHandler.RespawningTeam -= Handler.OnRespawningTeam;
             ServerHandler.RestartingRound -= Handler.OnRoundRestart;
             PlayerHandler.Died -= Handler.OnDied;
-            PlayerHandler.Spawning -= Handler.OnSpawning;
             PlayerHandler.Spawned -= Handler.OnPlayerSpawned;
             Scp330Handler.InteractingScp330 -= Handler.InteractingWith330;
 

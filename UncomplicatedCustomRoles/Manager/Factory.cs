@@ -59,6 +59,7 @@ namespace UncomplicatedCustomRoles.Manager
                 { RoleTypeId.Scp106, new List<ICustomRole>() },
                 { RoleTypeId.FacilityGuard, new List<ICustomRole>() }
             };
+            
         }
         public static Vector3 AdjustRoomPosition(Room Room)
         {

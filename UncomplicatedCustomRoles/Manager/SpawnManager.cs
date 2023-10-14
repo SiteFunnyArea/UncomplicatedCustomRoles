@@ -51,6 +51,11 @@ namespace UncomplicatedCustomRoles.Manager
                     Log.Warn($"The UCR custom role with the ID {Role.Id} failed the check: if you select the PositionSpawn as SpawnType the Vector3 SpawnPosition can't be empty!");
                     return false;
                 }
+                else if (Role.MinPlayers == 0)
+                {
+                    Log.Warn($"The UCR custom role with the ID {Role.Id} failed the check: The value of MinPlayers field must be greater than or equals to 1!");
+                    return false;
+                }
                 return true;
             }
         }
@@ -93,6 +98,9 @@ namespace UncomplicatedCustomRoles.Manager
                         break;
                     case SpawnLocationType.PositionSpawn:
                         Player.Position = Role.SpawnPosition;
+                        break;
+                    case SpawnLocationType.KeepRoleSpawn:
+                        Player.Position = Player.Position;
                         break;
                 };
             }
